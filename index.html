@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -23,53 +22,53 @@
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useMemo, useCallback } = React;
 
-/* —————————————————————— */
-/* 定数                                                                */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* 定数                                               */
+/* -------------------------------------------------- */
 
-const INCOME_CATEGORIES = [“給与”, “副業”, “お小遣い”, “臨時収入”, “ハピカ売上”, “その他収入”];
+const INCOME_CATEGORIES = ["給与", "副業", "お小遣い", "臨時収入", "ハピカ売上", "その他収入"];
 const EXPENSE_CATEGORIES = [
-“食費”, “日用品”, “交通”, “交際費”, “趣味・娯楽”,
-“住居”, “光熱費”, “通信費”, “医療”, “現場”, “その他支出”,
+"食費", "日用品", "交通", "交際費", "趣味・娯楽",
+"住居", "光熱費", "通信費", "医療", "現場", "その他支出",
 ];
 const INCOME_METHODS = [
-{ id: “cash”, label: “現金” },
-{ id: “paypay”, label: “PayPay” },
-{ id: “bank”, label: “銀行振込” },
+{ id: "cash", label: "現金" },
+{ id: "paypay", label: "PayPay" },
+{ id: "bank", label: "銀行振込" },
 ];
 const EXPENSE_METHODS = [
-{ id: “cash”, label: “現金” },
-{ id: “paypay”, label: “PayPay” },
-{ id: “credit”, label: “クレジットカード” },
-{ id: “emoney”, label: “電子マネー” },
+{ id: "cash", label: "現金" },
+{ id: "paypay", label: "PayPay" },
+{ id: "credit", label: "クレジットカード" },
+{ id: "emoney", label: "電子マネー" },
 ];
 const METHOD_LABEL = {
-cash: “現金”, paypay: “PayPay”, bank: “銀行振込”, credit: “クレカ”, emoney: “電子マネー”,
+cash: "現金", paypay: "PayPay", bank: "銀行振込", credit: "クレカ", emoney: "電子マネー",
 };
 
 const TABS = [
-{ id: “record”, label: “記帳”, sub: “RECORD” },
-{ id: “list”, label: “一覧”, sub: “LIST” },
-{ id: “summary”, label: “集計”, sub: “SUMMARY” },
-{ id: “assets”, label: “資産”, sub: “ASSETS” },
-{ id: “data”, label: “データ”, sub: “BACKUP” },
+{ id: "record", label: "記帳", sub: "RECORD" },
+{ id: "list", label: "一覧", sub: "LIST" },
+{ id: "summary", label: "集計", sub: "SUMMARY" },
+{ id: "assets", label: "資産", sub: "ASSETS" },
+{ id: "data", label: "データ", sub: "BACKUP" },
 ];
 
 const COLORS = {
-paper: “#EBDFB9”,
-paperDark: “#DECBA0”,
-paperDeep: “#D3BD8C”,
-ink: “#2B2620”,
-inkLight: “#6B5F4D”,
-inkFaint: “#948868”,
-income: “#3D6B4F”,
-expense: “#A63D2F”,
-credit: “#48577A”,
-savings: “#8B6F3E”,
-bank: “#3E6E71”,
-wallet: “#8B5E34”,
-emoney: “#A6447A”,
-seal: “#B7410E”,
+paper: "#EBDFB9",
+paperDark: "#DECBA0",
+paperDeep: "#D3BD8C",
+ink: "#2B2620",
+inkLight: "#6B5F4D",
+inkFaint: "#948868",
+income: "#3D6B4F",
+expense: "#A63D2F",
+credit: "#48577A",
+savings: "#8B6F3E",
+bank: "#3E6E71",
+wallet: "#8B5E34",
+emoney: "#A6447A",
+seal: "#B7410E",
 };
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -78,42 +77,41 @@ const d = new Date();
 return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 const thisMonthStr = () => todayStr().slice(0, 7);
-const monthOf = (dateStr) => (dateStr || “”).slice(0, 7);
+const monthOf = (dateStr) => (dateStr || "").slice(0, 7);
 const nextMonthOf = (dateStr) => {
-const [y, m] = (dateStr || todayStr()).split(”-”).map(Number);
-const d = new Date(y, m, 1); // m is 0-indexed already => next month
+const [y, m] = (dateStr || todayStr()).split("-").map(Number);
+const d = new Date(y, m, 1);
 return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 const shiftMonth = (ym, delta) => {
-const [y, m] = ym.split(”-”).map(Number);
+const [y, m] = ym.split("-").map(Number);
 const d = new Date(y, m - 1 + delta, 1);
 return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 const monthLabel = (ym) => {
-const [y, m] = ym.split(”-”).map(Number);
+const [y, m] = ym.split("-").map(Number);
 return `${y}年${m}月`;
 };
 const yen = (n) => `¥${Math.round(n).toLocaleString("ja-JP")}`;
-const daysInMonth = (y, m) => new Date(y, m, 0).getDate(); // m: 1-indexed month
-// 購入日とカードの支払日(1〜31)から、翌月の支払日を提案する
+const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
 const suggestPaymentDate = (purchaseDate, payDay) => {
-const [y, m] = (purchaseDate || todayStr()).split(”-”).map(Number);
+const [y, m] = (purchaseDate || todayStr()).split("-").map(Number);
 let ny = y, nm = m + 1;
 if (nm > 12) { nm = 1; ny += 1; }
 const day = Math.min(Number(payDay) || 27, daysInMonth(ny, nm));
 return `${ny}-${String(nm).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 };
 const dateLabel = (dateStr) => {
-const [y, m, d] = dateStr.split(”-”).map(Number);
-const wd = [“日”, “月”, “火”, “水”, “木”, “金”, “土”][new Date(y, m - 1, d).getDay()];
+const [y, m, d] = dateStr.split("-").map(Number);
+const wd = ["日", "月", "火", "水", "木", "金", "土"][new Date(y, m - 1, d).getDay()];
 return `${m}/${d}(${wd})`;
 };
 
-/* —————————————————————— */
-/* ストレージ                                                          */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* ストレージ                                         */
+/* -------------------------------------------------- */
 
-const LS_PREFIX = “kakeibo:”;
+const LS_PREFIX = "kakeibo:";
 async function loadKey(key, fallback) {
 try {
 const raw = window.localStorage.getItem(LS_PREFIX + key);
@@ -132,19 +130,18 @@ return false;
 }
 }
 
-/* 取引が財布・電子マネー残高に与える影響を計算／適用するヘルパー */
 function walletDeltaFor(entry) {
-if (!entry || entry.method !== “cash”) return 0;
-return entry.type === “income” ? entry.amount : -entry.amount;
+if (!entry || entry.method !== "cash") return 0;
+return entry.type === "income" ? entry.amount : -entry.amount;
 }
 function emoneyUseDeltaFor(entry) {
-if (entry && entry.method === “emoney” && entry.type === “expense” && entry.potId) {
+if (entry && entry.method === "emoney" && entry.type === "expense" && entry.potId) {
 return { potId: entry.potId, delta: -entry.amount };
 }
 return null;
 }
 function emoneyChargeDeltaFor(entry) {
-if (entry && entry.method === “credit” && entry.isCharge && entry.chargePotId) {
+if (entry && entry.method === "credit" && entry.isCharge && entry.chargePotId) {
 return { potId: entry.chargePotId, delta: entry.amount };
 }
 return null;
@@ -153,9 +150,9 @@ function applyWalletDelta(wallet, delta, date, note) {
 if (!delta) return wallet;
 const newBalance = (wallet.balance || 0) + delta;
 return {
-…wallet,
+...wallet,
 balance: newBalance,
-history: […(wallet.history || []), { date, balance: newBalance, memo: note }],
+history: [...(wallet.history || []), { date, balance: newBalance, memo: note }],
 };
 }
 function applyEmoneyDelta(list, deltaObj, date, note) {
@@ -163,17 +160,17 @@ if (!deltaObj) return list;
 return list.map((p) =>
 p.id === deltaObj.potId
 ? {
-…p,
+...p,
 balance: p.balance + deltaObj.delta,
-history: […(p.history || []), { date, balance: p.balance + deltaObj.delta, memo: note }],
+history: [...(p.history || []), { date, balance: p.balance + deltaObj.delta, memo: note }],
 }
 : p
 );
 }
 
-/* —————————————————————— */
-/* メインコンポーネント                                                 */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* メインコンポーネント                               */
+/* -------------------------------------------------- */
 
 function Kakeibo() {
 const [loading, setLoading] = useState(true);
@@ -184,22 +181,22 @@ const [wallet, setWallet] = useState({ balance: 0, history: [] });
 const [emoneyAccounts, setEmoneyAccounts] = useState([]);
 const [transfers, setTransfers] = useState([]);
 const [creditCards, setCreditCards] = useState([]);
-const [activeTab, setActiveTab] = useState(“record”);
+const [activeTab, setActiveTab] = useState("record");
 const [toast, setToast] = useState(null);
-const [stamp, setStamp] = useState(null); // {kind:‘income’|‘expense’}
+const [stamp, setStamp] = useState(null); 
 const [editingId, setEditingId] = useState(null);
 const [reduceMotion, setReduceMotion] = useState(false);
 
 useEffect(() => {
-const mq = window.matchMedia(”(prefers-reduced-motion: reduce)”);
+const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
 setReduceMotion(mq.matches);
 }, []);
 
 useEffect(() => {
-const link = document.createElement(“link”);
-link.rel = “stylesheet”;
+const link = document.createElement("link");
+link.rel = "stylesheet";
 link.href =
-“https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap”;
+"https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap";
 document.head.appendChild(link);
 return () => document.head.removeChild(link);
 }, []);
@@ -207,13 +204,13 @@ return () => document.head.removeChild(link);
 useEffect(() => {
 (async () => {
 const [tx, sv, cc, ba, wl, tr, em] = await Promise.all([
-loadKey(“transactions”, []),
-loadKey(“savings-accounts”, []),
-loadKey(“credit-cards”, []),
-loadKey(“bank-accounts”, []),
-loadKey(“wallet-account”, { balance: 0, history: [] }),
-loadKey(“transfers”, []),
-loadKey(“emoney-accounts”, []),
+loadKey("transactions", []),
+loadKey("savings-accounts", []),
+loadKey("credit-cards", []),
+loadKey("bank-accounts", []),
+loadKey("wallet-account", { balance: 0, history: [] }),
+loadKey("transfers", []),
+loadKey("emoney-accounts", []),
 ]);
 setTransactions(tx);
 setSavings(sv);
@@ -233,44 +230,44 @@ setTimeout(() => setToast(null), 2200);
 
 const persistTransactions = useCallback(async (next) => {
 setTransactions(next);
-const ok = await saveKey(“transactions”, next);
-if (!ok) showToast(“保存に失敗しました。もう一度お試しください”);
+const ok = await saveKey("transactions", next);
+if (!ok) showToast("保存に失敗しました。もう一度お試しください");
 }, [showToast]);
 
 const persistSavings = useCallback(async (next) => {
 setSavings(next);
-const ok = await saveKey(“savings-accounts”, next);
-if (!ok) showToast(“保存に失敗しました。もう一度お試しください”);
+const ok = await saveKey("savings-accounts", next);
+if (!ok) showToast("保存に失敗しました。もう一度お試しください");
 }, [showToast]);
 
 const persistCreditCards = useCallback(async (next) => {
 setCreditCards(next);
-const ok = await saveKey(“credit-cards”, next);
-if (!ok) showToast(“保存に失敗しました。もう一度お試しください”);
+const ok = await saveKey("credit-cards", next);
+if (!ok) showToast("保存に失敗しました。もう一度お試しください");
 }, [showToast]);
 
 const persistBankAccounts = useCallback(async (next) => {
 setBankAccounts(next);
-const ok = await saveKey(“bank-accounts”, next);
-if (!ok) showToast(“保存に失敗しました。もう一度お試しください”);
+const ok = await saveKey("bank-accounts", next);
+if (!ok) showToast("保存に失敗しました。もう一度お試しください");
 }, [showToast]);
 
 const persistWallet = useCallback(async (next) => {
 setWallet(next);
-const ok = await saveKey(“wallet-account”, next);
-if (!ok) showToast(“保存に失敗しました。もう一度お試しください”);
+const ok = await saveKey("wallet-account", next);
+if (!ok) showToast("保存に失敗しました。もう一度お試しください");
 }, [showToast]);
 
 const persistEmoney = useCallback(async (next) => {
 setEmoneyAccounts(next);
-const ok = await saveKey(“emoney-accounts”, next);
-if (!ok) showToast(“保存に失敗しました。もう一度お試しください”);
+const ok = await saveKey("emoney-accounts", next);
+if (!ok) showToast("保存に失敗しました。もう一度お試しください");
 }, [showToast]);
 
 const persistTransfers = useCallback(async (next) => {
 setTransfers(next);
-const ok = await saveKey(“transfers”, next);
-if (!ok) showToast(“保存に失敗しました。もう一度お試しください”);
+const ok = await saveKey("transfers", next);
+if (!ok) showToast("保存に失敗しました。もう一度お試しください");
 }, [showToast]);
 
 const addOrUpdateTransaction = useCallback((entry) => {
@@ -279,10 +276,10 @@ let next;
 if (entry.id) {
 next = prev.map((t) => (t.id === entry.id ? entry : t));
 } else {
-next = […prev, { …entry, id: uid() }];
+next = [...prev, { ...entry, id: uid() }];
 }
 next.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
-saveKey(“transactions”, next);
+saveKey("transactions", next);
 return next;
 });
 }, []);
@@ -290,7 +287,7 @@ return next;
 const deleteTransaction = useCallback((id) => {
 setTransactions((prev) => {
 const next = prev.filter((t) => t.id !== id);
-saveKey(“transactions”, next);
+saveKey("transactions", next);
 return next;
 });
 }, []);
@@ -304,7 +301,7 @@ setTimeout(() => setStamp(null), 950);
 if (loading) {
 return (
 <Shell>
-<div style={{ padding: 60, textAlign: “center”, color: COLORS.inkLight, fontFamily: “‘Zen Kaku Gothic New’, sans-serif” }}>
+<div style={{ padding: 60, textAlign: "center", color: COLORS.inkLight, fontFamily: "'Zen Kaku Gothic New', sans-serif" }}>
 帳簿を開いています…
 </div>
 </Shell>
@@ -315,28 +312,28 @@ return (
 <Shell>
 <Header savings={savings} bankAccounts={bankAccounts} wallet={wallet} emoneyAccounts={emoneyAccounts} />
 <TabBar active={activeTab} onChange={setActiveTab} />
-<div style={{ position: “relative” }}>
-{activeTab === “record” && (
+<div style={{ position: "relative" }}>
+{activeTab === "record" && (
 <RecordTab
 editingId={editingId}
 transactions={transactions}
 creditCards={creditCards}
 onAddCard={(card) => {
-persistCreditCards([…creditCards, card]);
-showToast(“カードを追加しました”);
+persistCreditCards([...creditCards, card]);
+showToast("カードを追加しました");
 }}
 onDeleteCard={(id) => {
 persistCreditCards(creditCards.filter((c) => c.id !== id));
-showToast(“カードを削除しました”);
+showToast("カードを削除しました");
 }}
 emoneyAccounts={emoneyAccounts}
 onAddEmoney={(pot) => {
-persistEmoney([…emoneyAccounts, pot]);
-showToast(“電子マネーを追加しました”);
+persistEmoney([...emoneyAccounts, pot]);
+showToast("電子マネーを追加しました");
 }}
 onDeleteEmoney={(id) => {
 persistEmoney(emoneyAccounts.filter((p) => p.id !== id));
-showToast(“電子マネーを削除しました”);
+showToast("電子マネーを削除しました");
 }}
 onCancelEdit={() => setEditingId(null)}
 onSubmit={(entry) => {
@@ -344,7 +341,6 @@ const oldEntry = entry.id ? transactions.find((t) => t.id === entry.id) : null;
 let nextWallet = wallet;
 let nextEmoney = emoneyAccounts;
 
-```
           if (oldEntry) {
             const oldWalletDelta = walletDeltaFor(oldEntry);
             if (oldWalletDelta) nextWallet = applyWalletDelta(nextWallet, -oldWalletDelta, todayStr(), "記録の編集による調整");
@@ -444,14 +440,12 @@ let nextEmoney = emoneyAccounts;
   {toast && <Toast text={toast} />}
   <GlobalStyle />
 </Shell>
-```
-
 );
 }
 
-/* —————————————————————— */
-/* レイアウト部品                                                       */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* レイアウト部品                                     */
+/* -------------------------------------------------- */
 
 function Shell({ children }) {
 return (
@@ -489,7 +483,7 @@ return (
 {TABS.map((t) => (
 <button
 key={t.id}
-role=“tab”
+role="tab"
 aria-selected={active === t.id}
 className={`kb-tab ${active === t.id ? "kb-tab-active" : ""}`}
 onClick={() => onChange(t.id)}
@@ -508,48 +502,48 @@ return <div className="kb-toast">{text}</div>;
 
 function StampOverlay({ stamp }) {
 if (!stamp) return null;
-const isIncome = stamp.kind === “income”;
+const isIncome = stamp.kind === "income";
 return (
 <div className="kb-stamp-layer" key={stamp.key} aria-hidden="true">
 <div className={`kb-stamp ${isIncome ? "kb-stamp-income" : "kb-stamp-expense"}`}>
-<span>{isIncome ? “入金” : “支払”}</span>
+<span>{isIncome ? "入金" : "支払"}</span>
 <span className="kb-stamp-sub">済</span>
 </div>
 </div>
 );
 }
 
-/* —————————————————————— */
-/* 記帳タブ                                                             */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* 記帳タブ                                           */
+/* -------------------------------------------------- */
 
 function RecordTab({ onSubmit, editingId, transactions, onCancelEdit, creditCards, onAddCard, onDeleteCard, emoneyAccounts, onAddEmoney, onDeleteEmoney }) {
 const editing = editingId ? transactions.find((t) => t.id === editingId) : null;
 
 const blank = {
-type: “expense”,
-method: “cash”,
-amount: “”,
+type: "expense",
+method: "cash",
+amount: "",
 category: EXPENSE_CATEGORIES[0],
 date: todayStr(),
-cardId: “”,
-paymentDate: “”,
+cardId: "",
+paymentDate: "",
 isCharge: false,
-chargePotId: “”,
-potId: “”,
-memo: “”,
+chargePotId: "",
+potId: "",
+memo: "",
 };
 const [form, setForm] = useState(editing || blank);
 const [paymentDateTouched, setPaymentDateTouched] = useState(false);
 const [showCardForm, setShowCardForm] = useState(false);
-const [cardName, setCardName] = useState(””);
-const [cardPayDay, setCardPayDay] = useState(“27”);
+const [cardName, setCardName] = useState("");
+const [cardPayDay, setCardPayDay] = useState("27");
 const [showEmoneyForm, setShowEmoneyForm] = useState(false);
-const [emoneyName, setEmoneyName] = useState(””);
+const [emoneyName, setEmoneyName] = useState("");
 
 useEffect(() => {
 if (editing) {
-setForm({ …editing, amount: String(editing.amount) });
+setForm({ ...editing, amount: String(editing.amount) });
 setPaymentDateTouched(true);
 } else {
 setForm(blank);
@@ -558,37 +552,36 @@ setPaymentDateTouched(false);
 // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [editingId]);
 
-// カードまたは購入日が変わったら、支払日をカード設定から自動提案する（手動編集後は上書きしない）
 useEffect(() => {
-if (form.method !== “credit”) return;
+if (form.method !== "credit") return;
 if (paymentDateTouched) return;
 const card = creditCards.find((c) => c.id === form.cardId);
 if (!card) return;
-setForm((f) => ({ …f, paymentDate: suggestPaymentDate(f.date, card.payDay) }));
+setForm((f) => ({ ...f, paymentDate: suggestPaymentDate(f.date, card.payDay) }));
 // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [form.method, form.cardId, form.date, creditCards]);
 
 useEffect(() => {
-if (form.method === “credit” && !form.cardId && creditCards.length > 0) {
-setForm((f) => ({ …f, cardId: creditCards[0].id }));
+if (form.method === "credit" && !form.cardId && creditCards.length > 0) {
+setForm((f) => ({ ...f, cardId: creditCards[0].id }));
 }
 }, [form.method, form.cardId, creditCards]);
 
 useEffect(() => {
-if (form.method === “emoney” && !form.potId && emoneyAccounts.length > 0) {
-setForm((f) => ({ …f, potId: emoneyAccounts[0].id }));
+if (form.method === "emoney" && !form.potId && emoneyAccounts.length > 0) {
+setForm((f) => ({ ...f, potId: emoneyAccounts[0].id }));
 }
 }, [form.method, form.potId, emoneyAccounts]);
 
-const methods = form.type === “income” ? INCOME_METHODS : EXPENSE_METHODS;
-const categories = form.type === “income” ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-const accent = form.type === “income” ? COLORS.income : COLORS.expense;
+const methods = form.type === "income" ? INCOME_METHODS : EXPENSE_METHODS;
+const categories = form.type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+const accent = form.type === "income" ? COLORS.income : COLORS.expense;
 
 const setType = (type) => {
-const methods2 = type === “income” ? INCOME_METHODS : EXPENSE_METHODS;
-const categories2 = type === “income” ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+const methods2 = type === "income" ? INCOME_METHODS : EXPENSE_METHODS;
+const categories2 = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 setForm((f) => ({
-…f,
+...f,
 type,
 method: methods2[0].id,
 category: categories2[0],
@@ -597,18 +590,18 @@ category: categories2[0],
 
 const setMethod = (method) => {
 setPaymentDateTouched(false);
-setForm((f) => ({ …f, method, isCharge: false }));
+setForm((f) => ({ ...f, method, isCharge: false }));
 };
-const setDate = (date) => setForm((f) => ({ …f, date }));
+const setDate = (date) => setForm((f) => ({ ...f, date }));
 
 const addCard = () => {
 if (!cardName.trim()) return;
 const card = { id: uid(), name: cardName.trim(), payDay: Math.min(31, Math.max(1, Number(cardPayDay) || 27)) };
 onAddCard(card);
-setForm((f) => ({ …f, cardId: card.id }));
+setForm((f) => ({ ...f, cardId: card.id }));
 setPaymentDateTouched(false);
-setCardName(””);
-setCardPayDay(“27”);
+setCardName("");
+setCardPayDay("27");
 setShowCardForm(false);
 };
 
@@ -616,9 +609,9 @@ const addEmoneyPot = (thenAssignTo) => {
 if (!emoneyName.trim()) return;
 const pot = { id: uid(), name: emoneyName.trim(), balance: 0, history: [] };
 onAddEmoney(pot);
-if (thenAssignTo === “potId”) setForm((f) => ({ …f, potId: pot.id }));
-if (thenAssignTo === “chargePotId”) setForm((f) => ({ …f, chargePotId: pot.id }));
-setEmoneyName(””);
+if (thenAssignTo === "potId") setForm((f) => ({ ...f, potId: pot.id }));
+if (thenAssignTo === "chargePotId") setForm((f) => ({ ...f, chargePotId: pot.id }));
+setEmoneyName("");
 setShowEmoneyForm(false);
 };
 
@@ -627,9 +620,9 @@ const selectedPot = emoneyAccounts.find((p) => p.id === form.potId);
 const selectedChargePot = emoneyAccounts.find((p) => p.id === form.chargePotId);
 const canSubmit =
 form.amount && Number(form.amount) > 0 && form.date &&
-(form.method !== “credit” || (form.cardId && form.paymentDate)) &&
-(form.method !== “credit” || !form.isCharge || form.chargePotId) &&
-(form.method !== “emoney” || form.potId);
+(form.method !== "credit" || (form.cardId && form.paymentDate)) &&
+(form.method !== "credit" || !form.isCharge || form.chargePotId) &&
+(form.method !== "emoney" || form.potId);
 
 const submit = () => {
 if (!canSubmit) return;
@@ -641,15 +634,15 @@ amount: Number(form.amount),
 category: form.category,
 date: form.date,
 memo: form.memo.trim(),
-cardId: form.method === “credit” ? form.cardId : null,
-cardName: form.method === “credit” ? (selectedCard ? selectedCard.name : “”) : null,
-paymentDate: form.method === “credit” ? form.paymentDate : null,
-billingMonth: form.method === “credit” ? monthOf(form.paymentDate) : null,
-isCharge: form.method === “credit” ? !!form.isCharge : false,
-chargePotId: form.method === “credit” && form.isCharge ? form.chargePotId : null,
-chargePotName: form.method === “credit” && form.isCharge ? (selectedChargePot ? selectedChargePot.name : “”) : null,
-potId: form.method === “emoney” ? form.potId : null,
-potName: form.method === “emoney” ? (selectedPot ? selectedPot.name : “”) : null,
+cardId: form.method === "credit" ? form.cardId : null,
+cardName: form.method === "credit" ? (selectedCard ? selectedCard.name : "") : null,
+paymentDate: form.method === "credit" ? form.paymentDate : null,
+billingMonth: form.method === "credit" ? monthOf(form.paymentDate) : null,
+isCharge: form.method === "credit" ? !!form.isCharge : false,
+chargePotId: form.method === "credit" && form.isCharge ? form.chargePotId : null,
+chargePotName: form.method === "credit" && form.isCharge ? (selectedChargePot ? selectedChargePot.name : "") : null,
+potId: form.method === "emoney" ? form.potId : null,
+potName: form.method === "emoney" ? (selectedPot ? selectedPot.name : "") : null,
 };
 onSubmit(entry);
 if (!editing) {
@@ -669,7 +662,6 @@ return (
 </div>
 )}
 
-```
   <div className="kb-segment">
     <button
       className={`kb-segment-btn ${form.type === "income" ? "kb-seg-income-on" : ""}`}
@@ -957,26 +949,25 @@ return (
     {editing ? "記録を更新する" : "記帳する"}
   </button>
 </div>
-```
 
 );
 }
 
-/* —————————————————————— */
-/* 一覧タブ                                                             */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* 一覧タブ                                           */
+/* -------------------------------------------------- */
 
 function ListTab({ transactions, onEdit, onDelete }) {
 const [month, setMonth] = useState(thisMonthStr());
-const [filter, setFilter] = useState(“all”);
+const [filter, setFilter] = useState("all");
 
 const filtered = useMemo(() => {
 return transactions
 .filter((t) => monthOf(t.date) === month)
 .filter((t) => {
-if (filter === “all”) return true;
-if (filter === “income”) return t.type === “income”;
-if (filter === “expense”) return t.type === “expense”;
+if (filter === "all") return true;
+if (filter === "income") return t.type === "income";
+if (filter === "expense") return t.type === "expense";
 return t.method === filter;
 });
 }, [transactions, month, filter]);
@@ -985,7 +976,6 @@ return (
 <div className="kb-panel">
 <MonthNav month={month} onChange={setMonth} />
 
-```
   <div className="kb-chiprow" style={{ marginTop: 4, marginBottom: 14 }}>
     {[
       { id: "all", label: "すべて" },
@@ -1057,7 +1047,6 @@ return (
     </ul>
   )}
 </div>
-```
 
 );
 }
@@ -1065,16 +1054,16 @@ return (
 function MonthNav({ month, onChange }) {
 return (
 <div className="kb-monthnav">
-<button onClick={() => onChange(shiftMonth(month, -1))} aria-label=“前の月”>‹</button>
+<button onClick={() => onChange(shiftMonth(month, -1))} aria-label="前の月">‹</button>
 <span>{monthLabel(month)}</span>
-<button onClick={() => onChange(shiftMonth(month, 1))} aria-label=“次の月”>›</button>
+<button onClick={() => onChange(shiftMonth(month, 1))} aria-label="次の月">›</button>
 </div>
 );
 }
 
-/* —————————————————————— */
-/* 集計タブ                                                             */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* 集計タブ                                           */
+/* -------------------------------------------------- */
 
 function SummaryTab({ transactions, creditCards }) {
 const [month, setMonth] = useState(thisMonthStr());
@@ -1082,27 +1071,27 @@ const [month, setMonth] = useState(thisMonthStr());
 const stats = useMemo(() => {
 let cashIncome = 0, cashExpense = 0, creditUsedThisMonth = 0, creditDueThisMonth = 0;
 const byCategory = {};
-const byCard = {}; // cardId -> { name, used, due }
+const byCard = {}; 
 const touchCard = (t, field) => {
-const key = t.cardId || t.cardName || “unknown”;
-if (!byCard[key]) byCard[key] = { name: t.cardName || “（削除済みのカード）”, used: 0, due: 0 };
+const key = t.cardId || t.cardName || "unknown";
+if (!byCard[key]) byCard[key] = { name: t.cardName || "（削除済みのカード）", used: 0, due: 0 };
 byCard[key][field] += t.amount;
 };
 for (const t of transactions) {
 const isThisMonth = monthOf(t.date) === month;
-if (t.type === “income” && isThisMonth) cashIncome += t.amount;
-if (t.type === “expense” && isThisMonth && (t.method === “cash” || t.method === “paypay”)) {
+if (t.type === "income" && isThisMonth) cashIncome += t.amount;
+if (t.type === "expense" && isThisMonth && (t.method === "cash" || t.method === "paypay")) {
 cashExpense += t.amount;
 }
-if (t.type === “expense” && t.method === “credit” && isThisMonth) {
+if (t.type === "expense" && t.method === "credit" && isThisMonth) {
 creditUsedThisMonth += t.amount;
-touchCard(t, “used”);
+touchCard(t, "used");
 }
-if (t.type === “expense” && t.method === “credit” && t.billingMonth === month) {
+if (t.type === "expense" && t.method === "credit" && t.billingMonth === month) {
 creditDueThisMonth += t.amount;
-touchCard(t, “due”);
+touchCard(t, "due");
 }
-if (t.type === “expense” && isThisMonth && t.method !== “emoney”) {
+if (t.type === "expense" && isThisMonth && t.method !== "emoney") {
 byCategory[t.category] = (byCategory[t.category] || 0) + t.amount;
 }
 }
@@ -1120,7 +1109,6 @@ return (
 <div className="kb-panel">
 <MonthNav month={month} onChange={setMonth} />
 
-```
   <div className="kb-statgrid">
     <StatCard label="収入（現金・PayPay・振込）" value={stats.cashIncome} color={COLORS.income} />
     <StatCard label="支出（現金・PayPay）" value={stats.cashExpense} color={COLORS.expense} />
@@ -1187,7 +1175,6 @@ return (
     </div>
   )}
 </div>
-```
 
 );
 }
@@ -1196,23 +1183,23 @@ function StatCard({ label, value, color, wide, note }) {
 return (
 <div className={`kb-statcard ${wide ? "kb-statcard-wide" : ""}`}>
 <div className="kb-statcard-label">{label}</div>
-<div className=“kb-statcard-value” style={{ color }}>{yen(value)}</div>
+<div className="kb-statcard-value" style={{ color }}>{yen(value)}</div>
 {note && <div className="kb-statcard-note">{note}</div>}
 </div>
 );
 }
 
-/* —————————————————————— */
-/* 貯金タブ                                                             */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* 貯金タブ                                           */
+/* -------------------------------------------------- */
 
 function AccountGroup({ items, onChange, onToast, color, entityLabel, namePlaceholder, totalLabel, showTotal }) {
 const [showAdd, setShowAdd] = useState(false);
-const [newName, setNewName] = useState(””);
-const [newBalance, setNewBalance] = useState(””);
+const [newName, setNewName] = useState("");
+const [newBalance, setNewBalance] = useState("");
 const [editingAccount, setEditingAccount] = useState(null);
-const [editBalance, setEditBalance] = useState(””);
-const [editMemo, setEditMemo] = useState(””);
+const [editBalance, setEditBalance] = useState("");
+const [editMemo, setEditMemo] = useState("");
 
 const total = items.reduce((s, a) => s + Number(a.balance || 0), 0);
 
@@ -1222,11 +1209,11 @@ const acc = {
 id: uid(),
 name: newName.trim(),
 balance: Number(newBalance) || 0,
-history: [{ date: todayStr(), balance: Number(newBalance) || 0, memo: “登録” }],
+history: [{ date: todayStr(), balance: Number(newBalance) || 0, memo: "登録" }],
 };
-onChange([…items, acc]);
-setNewName(””);
-setNewBalance(””);
+onChange([...items, acc]);
+setNewName("");
+setNewBalance("");
 setShowAdd(false);
 onToast(`${entityLabel}を追加しました`);
 };
@@ -1234,7 +1221,7 @@ onToast(`${entityLabel}を追加しました`);
 const openEdit = (acc) => {
 setEditingAccount(acc.id);
 setEditBalance(String(acc.balance));
-setEditMemo(””);
+setEditMemo("");
 };
 
 const saveEdit = (acc) => {
@@ -1243,33 +1230,32 @@ if (Number.isNaN(balance)) return;
 const next = items.map((a) =>
 a.id === acc.id
 ? {
-…a,
+...a,
 balance,
-history: […(a.history || []), { date: todayStr(), balance, memo: editMemo.trim() || “残高更新” }],
+history: [...(a.history || []), { date: todayStr(), balance, memo: editMemo.trim() || "残高更新" }],
 }
 : a
 );
 onChange(next);
 setEditingAccount(null);
-onToast(“残高を更新しました”);
+onToast("残高を更新しました");
 };
 
 const deleteAccount = (id) => {
 if (!window.confirm(`この${entityLabel}を削除しますか？`)) return;
 onChange(items.filter((a) => a.id !== id));
-onToast(“削除しました”);
+onToast("削除しました");
 };
 
 return (
 <div>
 {showTotal && (
-<div className=“kb-statcard kb-statcard-wide” style={{ marginBottom: 14 }}>
+<div className="kb-statcard kb-statcard-wide" style={{ marginBottom: 14 }}>
 <div className="kb-statcard-label">{totalLabel}</div>
-<div className=“kb-statcard-value” style={{ color }}>{yen(total)}</div>
+<div className="kb-statcard-value" style={{ color }}>{yen(total)}</div>
 </div>
 )}
 
-```
   {items.length === 0 && !showAdd ? (
     <EmptyState title={`${entityLabel}がまだ登録されていません`} body="追加すると、残高の推移を記録できます。" />
   ) : (
@@ -1353,7 +1339,6 @@ return (
     <button className="kb-addbtn" onClick={() => setShowAdd(true)}>＋ {entityLabel}を追加</button>
   )}
 </div>
-```
 
 );
 }
@@ -1361,11 +1346,11 @@ return (
 function WalletCard({ wallet, onChange, onToast }) {
 const [editing, setEditing] = useState(false);
 const [editBalance, setEditBalance] = useState(String(wallet.balance || 0));
-const [editMemo, setEditMemo] = useState(””);
+const [editMemo, setEditMemo] = useState("");
 
 const openEdit = () => {
 setEditBalance(String(wallet.balance || 0));
-setEditMemo(””);
+setEditMemo("");
 setEditing(true);
 };
 
@@ -1373,17 +1358,17 @@ const saveEdit = () => {
 const balance = Number(editBalance);
 if (Number.isNaN(balance)) return;
 onChange({
-…wallet,
+...wallet,
 balance,
-history: […(wallet.history || []), { date: todayStr(), balance, memo: editMemo.trim() || “残高更新” }],
+history: [...(wallet.history || []), { date: todayStr(), balance, memo: editMemo.trim() || "残高更新" }],
 });
 setEditing(false);
-onToast(“財布の残高を更新しました”);
+onToast("財布の残高を更新しました");
 };
 
 return (
-<div className=“kb-savingsrow” style={{ borderBottom: “none” }}>
-<div className=“kb-row-main” style={{ flex: 1 }}>
+<div className="kb-savingsrow" style={{ borderBottom: "none" }}>
+<div className="kb-row-main" style={{ flex: 1 }}>
 <div className="kb-row-top">
 <span className="kb-row-cat">財布</span>
 <span className="kb-row-method">{(wallet.history || []).length}件の記録</span>
@@ -1391,32 +1376,32 @@ return (
 {editing ? (
 <div className="kb-inline-edit">
 <input
-type=“number”
-className=“kb-input”
+type="number"
+className="kb-input"
 value={editBalance}
 onChange={(e) => setEditBalance(e.target.value)}
 />
 <input
-type=“text”
-className=“kb-input”
-placeholder=“メモ（任意）例）財布の中身を数えた”
+type="text"
+className="kb-input"
+placeholder="メモ（任意）例）財布の中身を数えた"
 value={editMemo}
 onChange={(e) => setEditMemo(e.target.value)}
 />
 <div className="kb-inline-edit-actions">
-<button className=“kb-linkbtn” onClick={() => setEditing(false)}>キャンセル</button>
-<button className=“kb-smallbtn” style={{ background: COLORS.wallet }} onClick={saveEdit}>保存</button>
+<button className="kb-linkbtn" onClick={() => setEditing(false)}>キャンセル</button>
+<button className="kb-smallbtn" style={{ background: COLORS.wallet }} onClick={saveEdit}>保存</button>
 </div>
 </div>
 ) : (
-<div className=“kb-row-amount” style={{ color: COLORS.wallet, marginTop: 4 }}>
+<div className="kb-row-amount" style={{ color: COLORS.wallet, marginTop: 4 }}>
 {yen(wallet.balance || 0)}
 </div>
 )}
 </div>
 {!editing && (
 <div className="kb-savingsrow-actions">
-<button className=“kb-smallbtn” style={{ background: COLORS.wallet }} onClick={openEdit}>
+<button className="kb-smallbtn" style={{ background: COLORS.wallet }} onClick={openEdit}>
 残高を更新
 </button>
 </div>
@@ -1427,20 +1412,20 @@ onChange={(e) => setEditMemo(e.target.value)}
 
 function buildPots(bankAccounts, wallet, savings, emoneyAccounts) {
 return [
-…bankAccounts.map((a) => ({ key: `bank:${a.id}`, kind: “bank”, name: a.name, balance: a.balance })),
-{ key: “wallet”, kind: “wallet”, name: “財布”, balance: wallet.balance || 0 },
-…(emoneyAccounts || []).map((a) => ({ key: `emoney:${a.id}`, kind: “emoney”, name: a.name, balance: a.balance })),
-…savings.map((a) => ({ key: `savings:${a.id}`, kind: “savings”, name: a.name, balance: a.balance })),
+...bankAccounts.map((a) => ({ key: `bank:${a.id}`, kind: "bank", name: a.name, balance: a.balance })),
+{ key: "wallet", kind: "wallet", name: "財布", balance: wallet.balance || 0 },
+...(emoneyAccounts || []).map((a) => ({ key: `emoney:${a.id}`, kind: "emoney", name: a.name, balance: a.balance })),
+...savings.map((a) => ({ key: `savings:${a.id}`, kind: "savings", name: a.name, balance: a.balance })),
 ];
 }
 
 function TransferSection({ bankAccounts, wallet, savings, emoneyAccounts, onChangeBank, onChangeWallet, onChangeSavings, onChangeEmoney, transfers, onChangeTransfers, onToast }) {
 const pots = useMemo(() => buildPots(bankAccounts, wallet, savings, emoneyAccounts), [bankAccounts, wallet, savings, emoneyAccounts]);
-const [fromKey, setFromKey] = useState(””);
-const [toKey, setToKey] = useState(””);
-const [amount, setAmount] = useState(””);
+const [fromKey, setFromKey] = useState("");
+const [toKey, setToKey] = useState("");
+const [amount, setAmount] = useState("");
 const [date, setDate] = useState(todayStr());
-const [memo, setMemo] = useState(””);
+const [memo, setMemo] = useState("");
 
 useEffect(() => {
 if (!fromKey && pots.length > 0) setFromKey(pots[0].key);
@@ -1449,7 +1434,7 @@ if (!toKey && pots.length > 1) setToKey(pots[1].key);
 
 const potLabel = (key) => {
 const p = pots.find((x) => x.key === key);
-return p ? p.name : “”;
+return p ? p.name : "";
 };
 
 const canSubmit = fromKey && toKey && fromKey !== toKey && Number(amount) > 0 && date;
@@ -1457,12 +1442,11 @@ const canSubmit = fromKey && toKey && fromKey !== toKey && Number(amount) > 0 &&
 const submit = () => {
 if (!canSubmit) return;
 const amt = Number(amount);
-let nextBank = bankAccounts.map((a) => ({ …a }));
-let nextWallet = { …wallet };
-let nextSavings = savings.map((a) => ({ …a }));
-let nextEmoney = (emoneyAccounts || []).map((a) => ({ …a }));
+let nextBank = bankAccounts.map((a) => ({ ...a }));
+let nextWallet = { ...wallet };
+let nextSavings = savings.map((a) => ({ ...a }));
+let nextEmoney = (emoneyAccounts || []).map((a) => ({ ...a }));
 
-```
 const applyDelta = (key, delta) => {
   const [kind, id] = key.split(":");
   const note = memo.trim() || (delta < 0 ? "資金移動（出金）" : "資金移動（入金）");
@@ -1510,7 +1494,6 @@ onChangeTransfers([
 setAmount("");
 setMemo("");
 onToast(`${fromLabel} → ${toLabel} に移動しました`);
-```
 
 };
 
@@ -1526,27 +1509,26 @@ body="口座・財布・貯金のうち2つ以上を登録すると、資金移�
 return (
 <div>
 <div className="kb-transferrow">
-<label className=“kb-field” style={{ flex: 1, marginBottom: 0 }}>
+<label className="kb-field" style={{ flex: 1, marginBottom: 0 }}>
 <span className="kb-field-label">移動元</span>
-<select className=“kb-input” value={fromKey} onChange={(e) => setFromKey(e.target.value)}>
+<select className="kb-input" value={fromKey} onChange={(e) => setFromKey(e.target.value)}>
 {pots.map((p) => <option key={p.key} value={p.key}>{p.name}（{yen(p.balance)}）</option>)}
 </select>
 </label>
 <div className="kb-transferarrow">→</div>
-<label className=“kb-field” style={{ flex: 1, marginBottom: 0 }}>
+<label className="kb-field" style={{ flex: 1, marginBottom: 0 }}>
 <span className="kb-field-label">移動先</span>
-<select className=“kb-input” value={toKey} onChange={(e) => setToKey(e.target.value)}>
+<select className="kb-input" value={toKey} onChange={(e) => setToKey(e.target.value)}>
 {pots.map((p) => <option key={p.key} value={p.key}>{p.name}（{yen(p.balance)}）</option>)}
 </select>
 </label>
 </div>
 {fromKey === toKey && (
-<div className=“kb-hint” style={{ color: COLORS.expense, marginBottom: 10, display: “block” }}>
+<div className="kb-hint" style={{ color: COLORS.expense, marginBottom: 10, display: "block" }}>
 移動元と移動先は別のものを選んでください
 </div>
 )}
 
-```
   <label className="kb-field">
     <span className="kb-field-label">金額</span>
     <div className="kb-amount-input" style={{ borderColor: COLORS.credit }}>
@@ -1603,7 +1585,6 @@ return (
     </ul>
   )}
 </div>
-```
 
 );
 }
@@ -1617,12 +1598,11 @@ Number(wallet.balance || 0);
 
 return (
 <div className="kb-panel">
-<div className=“kb-statcard kb-statcard-wide” style={{ marginBottom: 8 }}>
+<div className="kb-statcard kb-statcard-wide" style={{ marginBottom: 8 }}>
 <div className="kb-statcard-label">資産合計（口座＋財布＋電子マネー＋貯金）</div>
-<div className=“kb-statcard-value” style={{ color: COLORS.ink }}>{yen(total)}</div>
+<div className="kb-statcard-value" style={{ color: COLORS.ink }}>{yen(total)}</div>
 </div>
 
-```
   <div className="kb-subhead">口座</div>
   <AccountGroup
     items={bankAccounts}
@@ -1671,22 +1651,21 @@ return (
     onToast={onToast}
   />
 </div>
-```
 
 );
 }
 
-/* —————————————————————— */
-/* データタブ（エクスポート／インポート）                                  */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* データタブ（エクスポート／インポート）                 */
+/* -------------------------------------------------- */
 
 function DataTab({ transactions, savings, creditCards, bankAccounts, wallet, emoneyAccounts, transfers, onImport, onToast }) {
-const [importText, setImportText] = useState(””);
+const [importText, setImportText] = useState("");
 const fileRef = React.useRef(null);
 
 const exportData = () => {
 const payload = {
-app: “kakeibo-ledger”,
+app: "kakeibo-ledger",
 version: 4,
 exportedAt: new Date().toISOString(),
 transactions,
@@ -1697,16 +1676,16 @@ wallet,
 emoneyAccounts,
 transfers,
 };
-const blob = new Blob([JSON.stringify(payload, null, 2)], { type: “application/json” });
+const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
 const url = URL.createObjectURL(blob);
-const a = document.createElement(“a”);
+const a = document.createElement("a");
 a.href = url;
 a.download = `kakeibo-backup-${todayStr()}.json`;
 document.body.appendChild(a);
 a.click();
 document.body.removeChild(a);
 URL.revokeObjectURL(url);
-onToast(“バックアップを書き出しました”);
+onToast("バックアップを書き出しました");
 };
 
 const applyImport = (text) => {
@@ -1716,16 +1695,16 @@ const tx = Array.isArray(data.transactions) ? data.transactions : [];
 const sv = Array.isArray(data.savings) ? data.savings : [];
 const cc = Array.isArray(data.creditCards) ? data.creditCards : [];
 const ba = Array.isArray(data.bankAccounts) ? data.bankAccounts : [];
-const wl = data.wallet && typeof data.wallet === “object” ? data.wallet : { balance: 0, history: [] };
+const wl = data.wallet && typeof data.wallet === "object" ? data.wallet : { balance: 0, history: [] };
 const tr = Array.isArray(data.transfers) ? data.transfers : [];
 const em = Array.isArray(data.emoneyAccounts) ? data.emoneyAccounts : [];
 if (!window.confirm(`取引 ${tx.length} 件・口座 ${ba.length} 件・貯金口座 ${sv.length} 件・カード ${cc.length} 件・電子マネー ${em.length} 件を読み込みます。現在のデータは上書きされます。よろしいですか？`)) {
 return;
 }
 onImport(tx, sv, cc, ba, wl, tr, em);
-setImportText(””);
+setImportText("");
 } catch (e) {
-onToast(“読み込みに失敗しました。ファイルの内容を確認してください”);
+onToast("読み込みに失敗しました。ファイルの内容を確認してください");
 }
 };
 
@@ -1733,9 +1712,9 @@ const handleFile = (e) => {
 const file = e.target.files && e.target.files[0];
 if (!file) return;
 const reader = new FileReader();
-reader.onload = () => applyImport(String(reader.result || “”));
+reader.onload = () => applyImport(String(reader.result || ""));
 reader.readAsText(file);
-e.target.value = “”;
+e.target.value = "";
 };
 
 return (
@@ -1744,11 +1723,10 @@ return (
 <p className="kb-para">
 すべての記録をひとつのファイルにまとめて保存します。機種変更やアプリの更新の前に、念のため書き出しておくと安心です。
 </p>
-<button className=“kb-submit” style={{ background: COLORS.ink }} onClick={exportData}>
+<button className="kb-submit" style={{ background: COLORS.ink }} onClick={exportData}>
 エクスポート（.json をダウンロード）
 </button>
 
-```
   <div className="kb-subhead" style={{ marginTop: 30 }}>バックアップから復元する</div>
   <p className="kb-para">
     書き出した .json ファイルを選ぶと、内容を確認したうえで復元します。現在のデータは上書きされるため、必要であれば先にエクスポートしてください。
@@ -1781,14 +1759,13 @@ return (
     記録はこのアプリ専用の保存領域に自動で残るので、次に開いたときもそのまま続きから使えます。とはいえ大切なデータなので、月に一度程度のエクスポートをおすすめします。
   </div>
 </div>
-```
 
 );
 }
 
-/* —————————————————————— */
-/* 共通部品                                                             */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* 共通部品                                           */
+/* -------------------------------------------------- */
 
 function EmptyState({ title, body }) {
 return (
@@ -1800,9 +1777,9 @@ return (
 );
 }
 
-/* —————————————————————— */
-/* スタイル                                                             */
-/* —————————————————————— */
+/* -------------------------------------------------- */
+/* スタイル                                           */
+/* -------------------------------------------------- */
 
 function GlobalStyle() {
 return (
@@ -1810,7 +1787,7 @@ return (
 );
 }
 
-const root = ReactDOM.createRoot(document.getElementById(“root”));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<Kakeibo />);
 
 </script>
