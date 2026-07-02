@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -9,10 +8,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#EBDFB9">
 <title>家計簿</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<link rel="stylesheet" href="[https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap](https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap)">
+<script crossorigin src="[https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js)"></script>
+<script crossorigin src="[https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js)"></script>
+<script src="[https://unpkg.com/@babel/standalone@7/babel.min.js](https://unpkg.com/@babel/standalone@7/babel.min.js)"></script>
 <style>
  html, body { margin: 0; padding: 0; background: #D3BD8C; }
  #root { min-height: 100vh; }
@@ -81,7 +80,7 @@ const thisMonthStr = () => todayStr().slice(0, 7);
 const monthOf = (dateStr) => (dateStr || "").slice(0, 7);
 const nextMonthOf = (dateStr) => {
 const [y, m] = (dateStr || todayStr()).split("-").map(Number);
-const d = new Date(y, m, 1); // m is 0-indexed already => next month
+const d = new Date(y, m, 1);
 return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 const shiftMonth = (ym, delta) => {
@@ -93,7 +92,7 @@ const monthLabel = (ym) => {
 const [y, m] = ym.split("-").map(Number);
 return `${y}年${m}月`;
 };
-// 給料日基準の「支払い月」を計算する。例：給料日25日なら8/1〜8/24は前月分、8/25〜8/31は当月分。
+
 const payPeriodOf = (dateStr, payday) => {
 if (!dateStr) return "";
 const [y, m, d] = dateStr.split("-").map(Number);
@@ -111,8 +110,8 @@ if (payday <= 1) return `${y}年${m}月分`;
 return `${y}年${m}月分（${m}/${payday}〜${nm}/${endDay}）`;
 };
 const yen = (n) => `¥${Math.round(n).toLocaleString("ja-JP")}`;
-const daysInMonth = (y, m) => new Date(y, m, 0).getDate(); // m: 1-indexed month
-// 購入日とカードの支払日(1〜31)から、翌月の支払日を提案する
+const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
+
 const suggestPaymentDate = (purchaseDate, payDay) => {
 const [y, m] = (purchaseDate || todayStr()).split("-").map(Number);
 let ny = y, nm = m + 1;
@@ -149,7 +148,6 @@ return false;
 }
 }
 
-/* 取引が財布・電子マネー残高に与える影響を計算／適用するヘルパー */
 function walletDeltaFor(entry) {
 if (!entry || entry.method !== "cash") return 0;
 return entry.type === "income" ? entry.amount : -entry.amount;
@@ -199,7 +197,7 @@ history: [...(a.history || []), { date, balance: (a.balance || 0) + delta, memo:
 : a
 );
 }
-// 支払日を過ぎたクレジットカードの利用分を、連携した口座の残高から自動で引き落とす
+
 function settleDueCredit(txs, cards, banks, todayD) {
 let nextBanks = banks;
 let touched = false;
@@ -240,7 +238,7 @@ const [creditCards, setCreditCards] = useState([]);
 const [payday, setPayday] = useState(25);
 const [activeTab, setActiveTab] = useState("record");
 const [toast, setToast] = useState(null);
-const [stamp, setStamp] = useState(null); // {kind:‘income'|‘expense'}
+const [stamp, setStamp] = useState(null);
 const [editingId, setEditingId] = useState(null);
 const [reduceMotion, setReduceMotion] = useState(false);
 
@@ -253,7 +251,7 @@ useEffect(() => {
 const link = document.createElement("link");
 link.rel = "stylesheet";
 link.href =
-"https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap";
+"[https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap](https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap)";
 document.head.appendChild(link);
 return () => document.head.removeChild(link);
 }, []);
@@ -379,7 +377,7 @@ setTimeout(() => setStamp(null), 950);
 if (loading) {
 return (
 <Shell>
-<div style={{ padding: 60, textAlign: "center", color: COLORS.inkLight, fontFamily: "‘Zen Kaku Gothic New', sans-serif" }}>
+<div style={{ padding: 60, textAlign: "center", color: COLORS.inkLight, fontFamily: "'Zen Kaku Gothic New', sans-serif" }}>
 帳簿を開いています...
 </div>
 </Shell>
@@ -389,7 +387,7 @@ return (
 if (loadError) {
 return (
 <Shell>
-<div style={{ padding: 40, textAlign: "center", color: COLORS.expense, fontFamily: "‘Zen Kaku Gothic New', sans-serif" }}>
+<div style={{ padding: 40, textAlign: "center", color: COLORS.expense, fontFamily: "'Zen Kaku Gothic New', sans-serif" }}>
 <div style={{ fontWeight: 700, marginBottom: 10 }}>読み込み中にエラーが発生しました</div>
 <div style={{ fontSize: 12, color: COLORS.inkLight, wordBreak: "break-all" }}>{loadError}</div>
 <button
@@ -443,7 +441,6 @@ let nextWallet = wallet;
 let nextEmoney = emoneyAccounts;
 let nextBank = bankAccounts;
 
-```
  if (oldEntry) {
  const oldWalletDelta = walletDeltaFor(oldEntry);
  if (oldWalletDelta) nextWallet = applyWalletDelta(nextWallet, -oldWalletDelta, todayStr(), "記録の編集による調整");
@@ -578,8 +575,6 @@ let nextBank = bankAccounts;
  {toast && <Toast text={toast} />}
  <GlobalStyle />
 </Shell>
-```
-
 );
 }
 
@@ -596,7 +591,7 @@ if (this.state.error) {
 return (
 <div style={{
 minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-background: "#D3BD8C", fontFamily: "‘Zen Kaku Gothic New', sans-serif", padding: 24,
+background: "#D3BD8C", fontFamily: "'Zen Kaku Gothic New', sans-serif", padding: 24,
 }}>
 <div style={{ maxWidth: 420, textAlign: "center", color: "#A63D2F" }}>
 <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 15 }}>画面の表示中にエラーが発生しました</div>
@@ -738,7 +733,6 @@ setPaymentDateTouched(false);
 // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [editingId]);
 
-// カードまたは購入日が変わったら、支払日をカード設定から自動提案する（手動編集後は上書きしない）
 useEffect(() => {
 if (form.method !== "credit") return;
 if (paymentDateTouched) return;
@@ -855,7 +849,6 @@ return (
 </div>
 )}
 
-```
  <div className="kb-segment">
  <button
  className={`kb-segment-btn ${form.type === "income" ? "kb-seg-income-on" : ""}`}
@@ -1179,8 +1172,6 @@ return (
  {editing ? "記録を更新する" : "記帳する"}
  </button>
 </div>
-```
-
 );
 }
 
@@ -1207,7 +1198,6 @@ return (
 <div className="kb-panel">
 <MonthNav month={month} onChange={setMonth} />
 
-```
  <div className="kb-chiprow" style={{ marginTop: 4, marginBottom: 14 }}>
  {[
  { id: "all", label: "すべて" },
@@ -1279,8 +1269,6 @@ return (
  </ul>
  )}
 </div>
-```
-
 );
 }
 
@@ -1372,7 +1360,6 @@ onChange={(e) => setPaydayDraft(e.target.value)}
 )}
 </div>
 
-```
  <div className="kb-monthnav">
  <button onClick={() => setMonth(shiftMonth(month, -1))} aria-label="前の期間">‹</button>
  <span>{periodTitle}</span>
@@ -1446,8 +1433,6 @@ onChange={(e) => setPaydayDraft(e.target.value)}
  </div>
  )}
 </div>
-```
-
 );
 }
 
@@ -1528,7 +1513,6 @@ return (
 </div>
 )}
 
-```
  {items.length === 0 && !showAdd ? (
  <EmptyState title={`${entityLabel}がまだ登録されていません`} body="追加すると、残高の推移を記録できます。" />
  ) : (
@@ -1612,8 +1596,6 @@ return (
  <button className="kb-addbtn" onClick={() => setShowAdd(true)}>＋ {entityLabel}を追加</button>
  )}
 </div>
-```
-
 );
 }
 
@@ -1721,7 +1703,6 @@ let nextWallet = { ...wallet };
 let nextSavings = savings.map((a) => ({ ...a }));
 let nextEmoney = (emoneyAccounts || []).map((a) => ({ ...a }));
 
-```
 const applyDelta = (key, delta) => {
  const [kind, id] = key.split(":");
  const note = memo.trim() || (delta < 0 ? "資金移動（出金）" : "資金移動（入金）");
@@ -1769,7 +1750,6 @@ onChangeTransfers([
 setAmount("");
 setMemo("");
 onToast(`${fromLabel} → ${toLabel} に移動しました`);
-```
 
 };
 
@@ -1805,7 +1785,6 @@ return (
 </div>
 )}
 
-```
  <label className="kb-field">
  <span className="kb-field-label">金額</span>
  <div className="kb-amount-input" style={{ borderColor: COLORS.credit }}>
@@ -1862,8 +1841,6 @@ return (
  </ul>
  )}
 </div>
-```
-
 );
 }
 
@@ -1881,7 +1858,6 @@ return (
 <div className="kb-statcard-value" style={{ color: COLORS.ink }}>{yen(total)}</div>
 </div>
 
-```
  <div className="kb-subhead">口座</div>
  <AccountGroup
  items={bankAccounts}
@@ -1930,8 +1906,6 @@ return (
  onToast={onToast}
  />
 </div>
-```
-
 );
 }
 
@@ -2009,7 +1983,6 @@ return (
 エクスポート（.json をダウンロード）
 </button>
 
-```
  <div className="kb-subhead" style={{ marginTop: 30 }}>バックアップから復元する</div>
  <p className="kb-para">
  書き出した .json ファイルを選ぶと、内容を確認したうえで復元します。現在のデータは上書きされるため、必要であれば先にエクスポートしてください。
@@ -2042,8 +2015,6 @@ return (
  記録はこのアプリ専用の保存領域に自動で残るので、次に開いたときもそのまま続きから使えます。とはいえ大切なデータなので、月に一度程度のエクスポートをおすすめします。
  </div>
 </div>
-```
-
 );
 }
 
